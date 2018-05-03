@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>zTree.js</title>
+    <!--基础样式-->
+    <link rel="stylesheet" href="css/zTreeStyle/zTreeStyle.css" type="text/css">
+    <style>
+        .rightClickMenu{
+            position: absolute;
+            background: white;
+            width: 150px;
+            box-shadow: 2px 2px 5px #888888;
+            visibility: hidden;
+        }
+        .rightClickMenu span{
+            font-size: 12px;
+            display: block;
+            padding:10px;
+            border: transparent 1px solid;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Chrome/Safari/Opera */
+            -khtml-user-select: none; /* Konqueror */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+            not supported by any browser */
+        }
+        .rightClickMenu span:hover{
+            border-color: #D5D5D5;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<ul id="treeDemo" class="ztree">
+
+</ul>
+
+
+
+<button onclick="getCheckNodes()">获取勾选之后的节点</button>
+<button onclick="zTreeDestroy()">销毁结构树</button>
+<button onclick="getAncestorNode()">获取祖先节点</button>
+
+<div class="rightClickMenu">
+    <div>
+        <span onclick="addNode();" id="add">添加下级</span>
+        <span>删除</span>
+        <span>重命名</span>
+    </div>
+</div>
+<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery.ztree.core.js"></script>
+<!--zTree 功能包-->
+<script type="text/javascript" src="js/jquery.ztree.excheck.js"></script>
+<script type="text/javascript" src="js/jquery.ztree.exedit.min.js"></script>
+<script>
+    var zTreeObj;
+    // zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
+    var setting = {
+        view : {
+            addHoverDom: addHoverDom,       // 用于当鼠标移动到节点上时，显示用户自定义控件。务必与 setting.view.removeHoverDom 同时使用
+            removeHoverDom: removeHoverDom, // 用于当鼠标移出节点时，隐藏用户自定义控件。务必与 addHoverDom 同时使用
+            dblClickExpand : false,
+            selectedMulti : false
+        },
+        edit: {
+            enable: true,
+            editNameSelectAll: true,// 节点编辑名称 input 初次显示时,设置 txt 内容是否为全选状态。
+            removeTitle:"删除",       // 删除按钮的 Title 辅助信息
+            renameTitle:"重命名"       // 编辑名称按钮的 Title 辅助信息。
+        },
+        check: {
+            enable: true
+        },
+        callback: {
+
+        },
+        data:{
+            simpleData: {
+                enable: true
+            }
+        },
+
+    };
+    // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
+
+   // setting.check.chkboxType = { "Y" : "ps", "N" : "ps" };
+
+
+
+
+    /*var zNodes = [
+        {name:"test1", open:true, children:[
+            {name:"test1_1"}, {name:"test1_2"}]},
+        {name:"test2", open:true, children:[
+            {name:"test2_1"}, {name:"test2_2"}]}
+    ];*/
+
+    var zNodes =[
+        { id:1, pId:0, name:"父节点1 - 展开", open:true},
+        { id:11, pId:1, name:"父节点11 - 折叠"},
+        { id:111, pId:11, name:"叶子节点111"},
+        { id:112, pId:11, name:"叶子节点112"},
+        { id:113, pId:11, name:"叶子节点113"},
+        { id:114, pId:11, name:"叶子节点114"},
+        { id:12, pId:1, name:"父节点12 - 折叠"},
+        { id:121, pId:12, name:"叶子节点121"},
+        { id:122, pId:12, name:"叶子节点122"},
+        { id:123, pId:12, name:"叶子节点123"},
+        { id:124, pId:12, name:"叶子节点124"},
+        { id:13, pId:1, name:"父节点13 - 没有子节点", isParent:true},
+        { id:2, pId:0, name:"父节点2 - 折叠"},
+        { id:21, pId:2, name:"父节点21 - 展开", open:true},
+        { id:211, pId:21, name:"叶子节点211"},
+        { id:212, pId:21, name:"叶子节点212"},
+        { id:213, pId:21, name:"叶子节点213"},
+        { id:214, pId:21, name:"叶子节点214"},
+        { id:22, pId:2, name:"父节点22 - 折叠"},
+        { id:221, pId:22, name:"叶子节点221"},
+        { id:222, pId:22, name:"叶子节点222"},
+        { id:223, pId:22, name:"叶子节点223"},
+        { id:224, pId:22, name:"叶子节点224"},
+        { id:23, pId:2, name:"父节点23 - 折叠"},
+        { id:231, pId:23, name:"叶子节点231"},
+        { id:232, pId:23, name:"叶子节点232"},
+        { id:233, pId:23, name:"叶子节点233"},
+        { id:234, pId:23, name:"叶子节点234"},
+        { id:3, pId:0, name:"父节点3 - 没有子节点", isParent:true}
+    ];
+    $(document).ready(function(){
+        zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+        setCheck();
+    });
+
+    function setCheck() {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo"),
+        type = { "Y":"ps", "N":"ps"};
+        zTree.setting.check.chkboxType = type;
+
+    }
+    function transformJSON(data){
+        var zNodes=[];
+        if(data === undefined || data === null || data.length == 0 ) return zNodes;
+        for(var i=0 ;i<data.length;i++) {
+            var json={};
+            json.name=data[i].text;
+            json.children=[];
+
+            zNodes.push(json);
+        }
+        return zNodes;
+    }
+    
+    function beforeClick(treeId, treeNode){
+        console.log(treeId, treeNode);
+
+        console.log(treeNode.getParentNode(),"父节点");
+         alert("点击了");
+    }
+    function onClick(treeId, treeNode) {
+        console.log(treeId, treeNode);
+    }
+    function getCheckNodes() {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        console.log("勾选的节点",zTree.getCheckedNodes(true));
+    }
+    function zTreeDestroy() {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        zTree.destroy();
+    }
+    function getAncestorNode(){
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        var node=zTree.getNodesByFilter(function (node) {
+            return node.level == 0
+        }, true);
+        console.log(node);
+    }
+    function OnRightClick(event, treeId, treeNode){
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        zTree.selectNode(treeNode);
+
+        $(".rightClickMenu").css({"top":event.clientY+"px", "left":event.clientX+"px", "visibility":"visible"});
+        $("body").bind("mousedown", onBodyMouseDown);
+
+
+    }
+    function onBodyMouseDown(event) {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+        console.log(event);
+        if (!(event.target.id == "add" || $(event.target).parents(".rightClickMenu").length>0)) {
+            $(".rightClickMenu").css({"visibility" : "hidden"});
+            zTree.cancelSelectedNode();
+        }
+    }
+    function addNode() {
+        alert(1);
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        var nodes = zTree.getSelectedNodes();
+        console.log(nodes);
+    }
+    function addHoverDom(treeId, treeNode) {
+        var sObj = $("#" + treeNode.tId + "_span");
+        if (treeNode.editNameFlag || $("#addBtn_"+treeNode.tId).length>0) return;
+        var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+            + "' title='添加' onfocus='this.blur();'></span>";
+        sObj.append(addStr);
+        var btn = $("#addBtn_"+treeNode.tId);
+        //var isAdded=false;
+        if (btn) btn.bind("click", function(){
+
+        });
+    };
+
+    // 用于当鼠标移出节点时，隐藏用户自定义控件
+    function removeHoverDom(treeId, treeNode) {
+        $("#addBtn_"+treeNode.tId).unbind().remove();
+    };
+</script>
+</body>
+</html>
